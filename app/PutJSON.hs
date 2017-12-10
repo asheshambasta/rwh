@@ -1,4 +1,7 @@
-module PutJSON where
+module PutJSON
+ (
+  putJValue
+ ) where
 
 import Data.List (intercalate)
 import SimpleJSON

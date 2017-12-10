@@ -4,32 +4,47 @@ import Numeric (showHex)
 import Data.Bits ((.&.), shiftR)
 import Data.Char (ord)
 
-data Doc  = ToBeDefined
-          deriving (Show)
+data Doc  = Empty
+          | Char Char
+          | Text String
+          | Line
+          | Concat Doc Doc
+          | Union Doc Doc
+          deriving (Show, Eq)
+
+empty :: Doc
+empty = Empty
 
 string :: String -> Doc
 string = enclose '"' '"' . hcat . map oneChar
 
 double :: Double -> Doc
-double d = undefined
+double = Text . show
+
+line :: Doc
+line = Line
 
 text :: String -> Doc
-text t = undefined
+text = Text
+
+char :: Char -> Doc
+char = Char
 
 -- concatenates 2 docs, same as (++) for lists
 (<>) :: Doc -> Doc -> Doc
-a <> b = undefined
+Empty <> y  = y
+x <> Empty  = x
+x <> y      = x `Concat` y
 
 -- enclose
 enclose :: Char -> Char -> Doc -> Doc
 enclose left right x = char left <> x <> char right
 
--- char
-char :: Char -> Doc
-char = undefined
-
 hcat :: [Doc] -> Doc
-hcat = undefined
+hcat = fold (<>)
+
+fold :: (Doc -> Doc -> Doc) -> [Doc] -> Doc
+fold f = foldr f empty
 
 oneChar :: Char -> Doc
 oneChar c = case lookup c simpleEscapes of
@@ -64,7 +79,22 @@ series open close item  = enclose open close
                         . fsep . punctuate (char ',') . map item
 
 fsep :: [Doc] -> Doc
-fsep = undefined
+fsep = fold (</>)
+
+(</>) :: Doc -> Doc -> Doc
+x </> y = x <> softline <> y
+
+softline :: Doc
+softline = group line
+
+group :: Doc -> Doc
+group x = flatten x `Union` x
+
+flatten :: Doc -> Doc
+flatten (x `Concat` y)  = flatten x `Concat` flatten y
+flatten Line            = Char ' '
+flatten (x `Union` _)   = flatten x
+flatten other           = other
 
 -- todo: understand
 punctuate :: Doc -> [Doc] -> [Doc]
@@ -72,4 +102,38 @@ punctuate p []      = []
 punctuate p [d]     = [d]
 punctuate p (d:ds)  = (d <> p) : punctuate p ds
 
+compact :: Doc -> String
+compact x = transform [x]
+  where
+    transform []      = ""
+    transform (d:ds)  =
+      case d of
+        Empty         -> transform ds
+        Char c        -> c : transform ds
+        Text s        -> s ++ transform ds
+        Line          -> '\n' : transform ds
+        a `Concat` b  -> transform (a:b:ds)
+        _ `Union` b   -> transform (b:ds)
 
+pretty width = best 0
+  where
+    best col (d:ds) =
+      case d of
+        Empty -> best col ds
+        Char c -> c : best (col + 1) ds
+        Text s -> s ++ best (col + length s) ds
+        Line -> '\n' : best 0 ds
+        a `Concat` b -> best col (a : b : ds)
+        a `Union` b -> nicest col (best col (a : ds)) (best col (b : ds))
+    best _ _ = ""
+    nicest col a b
+      | (width - least) `fits` a = a
+      | otherwise = b
+      where
+        least = min width col
+
+fits :: Int -> String -> Bool
+w `fits` _ | w < 0  = False
+w `fits` ""         = True
+w `fits` ('\n':_)   = True
+w `fits` (c:cs)     = (w - 1) `fits` cs

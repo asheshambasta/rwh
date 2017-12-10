@@ -4,7 +4,7 @@ module PrettyJSON
  ) where
 
 import SimpleJSON
-import Prettify
+import Prettify (Doc, series, string, double, text, (<>))
 
 renderJValue :: JValue -> Doc
 renderJValue (JBool True)   = text "true"
@@ -13,4 +13,9 @@ renderJValue JNull          = text "null"
 renderJValue (JNumber n)    = double n
 renderJValue (JString s)    = string s
 
+renderJValue (JArray ary)   = series '[' ']' renderJValue ary
+renderJValue (JObject obj)  = series '{' '}' field obj
+  where field (name, val)   = string name
+                              <> text ": "
+                              <> renderJValue val
 
