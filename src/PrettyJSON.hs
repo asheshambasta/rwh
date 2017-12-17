@@ -5,7 +5,6 @@ module PrettyJSON
 
 import SimpleJSON
 import Prettify (Doc, series, string, double, text, (<>))
-
 renderJValue :: JValue -> Doc
 renderJValue (JBool True)   = text "true"
 renderJValue (JBool False)  = text "false"

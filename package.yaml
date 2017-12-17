@@ -23,9 +23,12 @@ dependencies:
 - base >= 4.7 && < 5
 - bytestring
 - regex-posix
+- filepath
+- directory
 
 library:
   source-dirs: src
+  exposed-modules:
 
 executables:
   rwh2-exe:
