@@ -7,6 +7,8 @@ module JSONClass
   , JObj(fromJObj)
   ) where
 
+import Control.Arrow (second)
+
 type JSONError = String
 
 data JValue = JString String
@@ -78,4 +80,9 @@ jValuesToJAry = JAry
 jaryOfJValuesToJValue :: JAry JValue -> JValue
 jaryOfJValuesToJValue = JArray
 
+instance (JSON a) => JSON (JObj a) where
+  toJValue  = JObject . JObj . map (second toJValue) . fromJObj
 
+  fromJValue (JObject (JObj o)) = whenRight JObj (mapEithers unwrap o)
+    where unwrap (k, v) = whenRight ((,) k) (fromJValue v)
+  fromJValue _ = Left "not a json object"

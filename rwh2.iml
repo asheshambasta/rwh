@@ -13,5 +13,7 @@
     <orderEntry type="library" name="base-4.9.1.0" level="project" />
     <orderEntry type="library" name="ghc-prim-0.5.0.0" level="project" />
     <orderEntry type="library" name="integer-gmp-1.0.0.1" level="project" />
+    <orderEntry type="library" name="bytestring-0.10.6.0" level="project" />
+    <orderEntry type="library" name="deepseq-1.4.2.0" level="project" />
   </component>
 </module>

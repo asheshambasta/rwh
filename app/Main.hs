@@ -4,5 +4,15 @@ import Lib
 import SimpleJSON
 import PutJSON
 
+import System.IO
+import Data.Char (toUpper)
+
+name2rep name = "Hi " ++ name ++ ". Your name has " ++ show (length name) ++ " characters."
+
 main :: IO ()
-main = putJValue (JObject [("foo", JNumber 1), ("bar", JBool False), ("baz", JNull), ("foo2", JString "foobar")])
+main =  putStrLn "Hello! What's your name?" >>
+        getLine >>=
+        (putStrLn . name2rep)
+
+
+
