@@ -1,7 +1,8 @@
 module FoldDir where
 
 import ControlledVisit (getUsefulContents, Info(..), getInfo, isDirectory)
-import System.FilePath((</>))
+import System.FilePath ((</>), takeFileName, takeExtension)
+import Data.Char (toLower)
 
 data Iterate seed = Done { unwrap :: seed }
                   | Skip { unwrap :: seed }
@@ -31,3 +32,17 @@ foldTree iter initSeed path = do
                           seed''        -> walk (unwrap seed'') names
                 | otherwise -> walk seed' names
     walk seed _ = return (Continue seed)
+
+atMostThreePictures :: Iterator [FilePath]
+atMostThreePictures paths inf
+                      | length paths == 3 = Done paths
+                      | isDirectory inf && takeFileName path == ".svn" = Skip paths
+                      | extension `elem` [".jpeg", ".jpg", ".png"] = Continue (path : paths)
+                      | otherwise = Continue paths
+                      where path = infoPath inf
+                            extension = map toLower (takeExtension path)
+
+countDirs :: Iterator Integer
+countDirs c inf
+            | isDirectory inf = Continue (c + 1)
+            | otherwise = Continue c
