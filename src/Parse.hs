@@ -64,8 +64,8 @@ firstParser ==> secondParser = Parse chainedParser
 parseChar :: Parse Char
 parseChar = chr . fromIntegral <$> parseByte
 
-maybeHead :: L.ByteString -> Maybe Word8
-maybeHead bs
-      | L.length bs > 0 = Just (L.head bs)
-      | otherwise       = Nothing
+peekByte :: Parse (Maybe Word8)
+peekByte = (fmap fst . L.uncons . string) <$> getState -- the leading fmap is the functor for the optional pair type out of L.uncons
 
+peekChar :: Parse (Maybe Char)
+peekChar = fmap (chr . fromIntegral) <$> peekByte -- the fmap is the function for the optional Word8 out of peekByte
