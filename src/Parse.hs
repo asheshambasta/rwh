@@ -4,6 +4,7 @@ import qualified Data.ByteString.Lazy as L
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Int (Int64(..))
 import Data.Word (Word8)
+import Data.Char (chr)
 
 data ParseState = ParseState {
     string :: L.ByteString,
@@ -13,6 +14,10 @@ data ParseState = ParseState {
 newtype Parse a = Parse {
   runParse :: ParseState -> Either String (a, ParseState)
 }
+
+instance Functor Parse where
+  fmap f p1 =
+    p1 ==> \s -> identity (f s)
 
 identity :: a -> Parse a
 identity a = Parse ( \s -> Right (a, s) )
@@ -55,3 +60,12 @@ firstParser ==> secondParser = Parse chainedParser
          case runParse firstParser initState of
             Left err -> Left err
             Right (res1, newState) -> runParse (secondParser res1) newState
+
+parseChar :: Parse Char
+parseChar = chr . fromIntegral <$> parseByte
+
+maybeHead :: L.ByteString -> Maybe Word8
+maybeHead bs
+      | L.length bs > 0 = Just (L.head bs)
+      | otherwise       = Nothing
+
