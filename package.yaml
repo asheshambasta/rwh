@@ -26,6 +26,8 @@ dependencies:
 - filepath
 - directory
 - time
+- QuickCheck
+- random
 
 library:
   source-dirs: src
