@@ -4,7 +4,8 @@ import qualified Data.ByteString.Lazy as L
 import qualified Data.ByteString.Lazy.Char8 as L8
 import Data.Int (Int64(..))
 import Data.Word (Word8)
-import Data.Char (chr)
+import Data.Char (chr, isSpace, isDigit)
+import PNM (Greymap(..))
 
 data ParseState = ParseState {
     string :: L.ByteString,
@@ -61,11 +62,62 @@ firstParser ==> secondParser = Parse chainedParser
             Left err -> Left err
             Right (res1, newState) -> runParse (secondParser res1) newState
 
+w2c :: Word8 -> Char
+w2c = chr . fromIntegral
+
 parseChar :: Parse Char
-parseChar = chr . fromIntegral <$> parseByte
+parseChar = w2c <$> parseByte
 
 peekByte :: Parse (Maybe Word8)
 peekByte = (fmap fst . L.uncons . string) <$> getState -- the leading fmap is the functor for the optional pair type out of L.uncons
 
 peekChar :: Parse (Maybe Char)
-peekChar = fmap (chr . fromIntegral) <$> peekByte -- the fmap is the function for the optional Word8 out of peekByte
+peekChar = fmap w2c <$> peekByte -- the fmap is the function for the optional Word8 out of peekByte
+
+parseWhile :: (Word8 -> Bool) -> Parse [Word8]
+parseWhile p = (fmap p <$> peekByte) ==> \mp ->
+               if mp == Just True
+               then parseByte ==> \b ->
+                    (b:) <$> parseWhile p
+               else identity []
+
+parseRawPGM =
+    parseWhileWith w2c notWhite ==> \header -> skipSpaces ==>&
+    assert (header == "P5") "invalid raw header" ==>&
+    parseNat ==> \width -> skipSpaces ==>&
+    parseNat ==> \height -> skipSpaces ==>&
+    parseNat ==> \maxGrey ->
+    parseByte ==>&
+    parseBytes (width * height) ==> \bitmap ->
+    identity (Greymap width height maxGrey bitmap)
+  where notWhite = (`notElem` " \r\n\t")
+
+parseWhileWith :: (Word8 -> a) -> (a -> Bool) -> Parse [a]
+parseWhileWith f p = fmap f <$> parseWhile (p . f)
+
+parseNat :: Parse Int
+parseNat = parseWhileWith w2c isDigit ==> \digits ->
+           if null digits
+           then bail "no more input"
+           else let n = read digits
+                in if n < 0
+                   then bail "integer overflow"
+                   else identity n
+(==>&) :: Parse a -> Parse b -> Parse b
+pa ==>& pb = pa ==> const pb
+
+skipSpaces :: Parse ()
+skipSpaces = parseWhileWith w2c isSpace ==>& identity ()
+
+assert :: Bool -> String -> Parse ()
+assert b err = if b then identity () else bail err
+
+parseBytes :: Int -> Parse L.ByteString
+parseBytes n =
+    getState ==> \st ->
+    let n' = fromIntegral n
+        (h, t) = L.splitAt n' (string st)
+        st' = st { offset = offset st + L.length h, string = t }
+    in putState st' ==>&
+        assert (L.length h == n') "end of input" ==>&
+        identity h
