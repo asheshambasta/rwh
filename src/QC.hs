@@ -22,3 +22,11 @@ prop_empty_id x =
     x <> empty == x
   &&
     empty <> x == x
+
+prop_char c = char c == Char c
+
+prop_text s = text s == Text s
+
+prop_line = line == Line
+
+prop_double d = double d == Text (show d)
