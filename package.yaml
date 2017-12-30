@@ -28,6 +28,8 @@ dependencies:
 - time
 - QuickCheck
 - random
+- array
+- containers
 
 library:
   source-dirs: src
