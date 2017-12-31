@@ -121,3 +121,7 @@ parseBytes n =
     in putState st' ==>&
         assert (L.length h == n') "end of input" ==>&
         identity h
+
+parseTimes :: Int -> Parse a -> Parse [a]
+parseTimes 0 _ = identity []
+parseTimes n pa = pa ==> \a -> (a:) <$> parseTimes (n-1) pa
