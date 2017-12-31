@@ -13,6 +13,29 @@ import System.Environment (getArgs)
 import qualified Data.ByteString.Lazy.Char8 as L8
 import qualified Data.Map as M
 
+leftOddList = ["0001101", "0011001", "0010011", "0111101", "0100011",
+               "0110001", "0101111", "0111011", "0110111", "0001011"]
+
+rightList  = map complement <$> leftOddList
+             where complement '1' = '0'
+                   complement '0' = '1'
+
+leftEvenList = map reverse rightList
+
+parityList = ["111111", "110100", "110010", "110001", "101100",
+              "100110", "100011", "101010", "101001", "100101"]
+
+listToArray :: [a] -> Array Int a
+listToArray xs = listArray (0, l - 1) xs
+    where l = length xs
+
+leftOddCodes, leftEvenCodes, rightCodes, parityCodes :: Array Int String
+
+leftOddCodes = listToArray leftOddList
+leftEvenCodes = listToArray leftEvenList
+rightCodes = listToArray rightList
+parityCodes = listToArray parityList
+
 checkDigit :: (Integral a) => [a] -> a
 checkDigit ds = 10 - (sum products `mod` 10)
               where products = mapEveryOther (*3) (reverse ds)
@@ -20,3 +43,33 @@ checkDigit ds = 10 - (sum products `mod` 10)
 mapEveryOther :: (a -> a) -> [a] -> [a]
 mapEveryOther f = zipWith ($) (cycle [f, id])
 
+foldA :: Ix k => (a -> b -> a) -> a -> Array k b -> a
+foldA f a0 bs = go a0 (indices bs)
+    where go a0 (j:js) = let a0' = f a0 (bs ! j)
+                         in a0 `seq` go a0' js
+          go a0 []     = a0
+
+foldA1 :: Ix k => (a -> a -> a) -> Array k a -> a
+foldA1 f as = foldA f first as
+  where
+    first = as ! fst (bounds as)
+
+encodeEAN13 :: String -> String
+encodeEAN13 = concat . encodeDigits . map digitToInt
+
+encodeDigits :: [Int] -> [String]
+encodeDigits s@(first:rest) =
+    outerGuard : lefties ++ centerGuard : righties ++ [outerGuard]
+  where (left, right) = splitAt 5 rest
+        lefties = zipWith leftEncode (parityCodes ! first) left
+        righties = map rightEncode (right ++ [checkDigit s])
+
+leftEncode :: Char -> Int -> String
+leftEncode '1' = (leftOddCodes !)
+leftEncode '0' = (leftEvenCodes !)
+
+rightEncode :: Int -> String
+rightEncode = (rightCodes !)
+
+outerGuard = "101"
+centerGuard = "01010"
