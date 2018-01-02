@@ -20,6 +20,18 @@ instance Functor Parse where
   fmap f p1 =
     p1 ==> \s -> identity (f s)
 
+instance Applicative Parse where
+  pure = identity
+  pa2b <*> pa =
+    pa2b ==> \a2b ->
+    pa ==> \a ->
+    identity (a2b a)
+
+instance Monad Parse where
+  return = identity
+  (>>=) = (==>)
+  fail = bail
+
 identity :: a -> Parse a
 identity a = Parse ( \s -> Right (a, s) )
 
@@ -125,3 +137,4 @@ parseBytes n =
 parseTimes :: Int -> Parse a -> Parse [a]
 parseTimes 0 _ = identity []
 parseTimes n pa = pa ==> \a -> (a:) <$> parseTimes (n-1) pa
+

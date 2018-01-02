@@ -52,4 +52,3 @@ getBytes n bs = let num = fromIntegral n
 
 skipSpace2nd :: (a, L.ByteString) -> Maybe (a, L.ByteString)
 skipSpace2nd (a, bs) = Just (a, L8.dropWhile isSpace bs)
-
