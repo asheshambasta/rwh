@@ -1,4 +1,8 @@
+{-# LANGUAGE TypeSynonymInstances #-}
+
 module State where
+
+import System.Random
 
 newtype State s a = State {
   runState :: s -> (a, s)
@@ -18,5 +22,15 @@ bindState sa fa2sb =
 get :: State s s
 get = State $ \s -> (s, s)
 
-put :: State s ()
-put = State $ \s -> ((), s)
+put :: s -> State s ()
+put s = State $ const ((), s)
+
+type RandomState a = State StdGen a
+
+--getRandom :: Random a => RandomState a
+--getRandom =
+--  get >>= \gen ->
+--  let (val, gen') = random gen in
+--  put gen' >>
+--  return val
+
