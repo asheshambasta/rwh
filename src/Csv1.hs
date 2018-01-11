@@ -1,4 +1,4 @@
-module Csv1 where
+module Csv1 () where
 import Text.ParserCombinators.Parsec
 
 csvFile :: GenParser Char st [[String]]
