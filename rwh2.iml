@@ -30,5 +30,9 @@
     <orderEntry type="library" name="random-1.1" level="project" />
     <orderEntry type="library" name="template-haskell-2.11.1.0" level="project" />
     <orderEntry type="library" name="tf-random-0.5" level="project" />
+    <orderEntry type="library" name="binary-0.8.3.0" level="project" />
+    <orderEntry type="library" name="deepseq-1.4.2.0" level="project" />
+    <orderEntry type="library" name="parsec-3.1.11" level="project" />
+    <orderEntry type="library" name="text-1.2.2.2" level="project" />
   </component>
 </module>

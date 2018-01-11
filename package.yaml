@@ -30,6 +30,7 @@ dependencies:
 - random
 - array
 - containers
+- parsec
 
 library:
   source-dirs: src
