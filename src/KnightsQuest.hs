@@ -44,9 +44,15 @@ three m = moves m >>= moves >>= moves
 connections3 :: Pos -> Pos -> [Move]
 connections3 s e = filter (endsAt e) (three (Start s))
 
+{-connections :: Int -> Pos -> Pos -> [Move] -> [Move]
+connections 0 _ e ms = filter (endsAt e) ms
+connections n s e ms = fromPos (Start s) >>= (\m -> connections (n -1) (newStartPos m) e (m:ms))-}
+
 -- proposes all valid positions a knight can reach from a given 'previous' move.
 fromPos :: Move -> [Move]
-fromPos move = do
+fromPos move =
+  let (c, r) = newStartPos move
+  in do
     guard (onBoard (c, r)) -- fail if start pos is not on board to begin with
     m <-
       [ (c + 2, r - 1)
@@ -60,5 +66,3 @@ fromPos move = do
       ] -- all possible moves
     guard (onBoard m) -- fail if move is off board
     return (Moved move m)
-  where (c, r) = newStartPos move
-
