@@ -44,9 +44,14 @@ three m = moves m >>= moves >>= moves
 connections3 :: Pos -> Pos -> [Move]
 connections3 s e = filter (endsAt e) (three (Start s))
 
-{-connections :: Int -> Pos -> Pos -> [Move] -> [Move]
-connections 0 _ e ms = filter (endsAt e) ms
-connections n s e ms = fromPos (Start s) >>= (\m -> connections (n -1) (newStartPos m) e (m:ms))-}
+-- this is terribly inefficient, to revisit
+paths' :: Int -> Pos -> [Move] -> [Move]
+paths' steps e soFar
+    | steps > 1 = soFar >>= (paths' (steps - 1) e . posMoves)
+    | otherwise = filter (endsAt e) soFar
+
+paths :: Int -> Pos -> Pos -> [Move]
+paths steps s e = paths' steps e (posMoves (Start s))
 
 -- proposes all valid positions a knight can reach from a given 'previous' move.
 posMoves :: Move -> [Move]
