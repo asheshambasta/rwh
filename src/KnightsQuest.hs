@@ -12,9 +12,9 @@ instance Show Move where
  show (Move m p) = show m ++ " -> " ++ show p
 
 -- gets a new starting position
-starting :: Move -> Pos
-starting (Start p)  = p
-starting (Move _ p) = p
+newStartPos :: Move -> Pos
+newStartPos (Start p)  = p
+newStartPos (Move _ p) = p
 
 -- checks if a position is valid (can be on a chess board)
 onBoard :: Pos -> Bool
@@ -60,5 +60,5 @@ fromPos move = do
       ] -- all possible moves
     guard (onBoard m) -- fail if move is off board
     return (Move move m)
-  where (c, r) = starting move
+  where (c, r) = newStartPos move
 
