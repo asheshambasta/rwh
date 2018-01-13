@@ -33,8 +33,8 @@ endsAt p (Moved _ p1)  = p1 == p
 
 -- gets a list of possible knight's moves from a given position
 moves :: Move -> [Move]
-moves (Start (c, r))  = fromPos (Start (c, r))
-moves (Moved p (c, r)) = fromPos (Moved p (c, r))
+moves (Start (c, r))  = posMoves (Start (c, r))
+moves (Moved p (c, r)) = posMoves (Moved p (c, r))
 
 -- gets a list of all "series" 3 moves from a given start position
 three :: Move -> [Move]
@@ -49,8 +49,8 @@ connections 0 _ e ms = filter (endsAt e) ms
 connections n s e ms = fromPos (Start s) >>= (\m -> connections (n -1) (newStartPos m) e (m:ms))-}
 
 -- proposes all valid positions a knight can reach from a given 'previous' move.
-fromPos :: Move -> [Move]
-fromPos move =
+posMoves :: Move -> [Move]
+posMoves move =
   let (c, r) = newStartPos move
   in do
     guard (onBoard (c, r)) -- fail if start pos is not on board to begin with
