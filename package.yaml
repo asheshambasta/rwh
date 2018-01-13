@@ -31,6 +31,7 @@ dependencies:
 - array
 - containers
 - parsec
+- mtl
 
 library:
   source-dirs: src
